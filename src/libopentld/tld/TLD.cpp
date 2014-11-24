@@ -21,6 +21,10 @@
  *
  *  Created on: Nov 17, 2011
  *      Author: Georg Nebehay
+ *
+ * BH: Why is there no negative training for the ensemble classifier
+ * on initalLearning, why are negatives for NN and the other negatives
+ * group on same criterion?
  */
 
 #include "TLD.h"
@@ -292,6 +296,13 @@ void TLD::initialLearning()
     patches.push_back(patch); //Add first patch to patch list
 
     int numIterations = std::min<size_t>(positiveIndices.size(), 10); //Take at most 10 bounding boxes (sorted by overlap)
+
+    for(size_t i = 0; i < negativeIndices.size(); i++)
+    {
+        int idx = negativeIndices.at(i);
+        //TODO: Somewhere here image warping might be possible
+        detectorCascade->ensembleClassifier->learn(&detectorCascade->windows[TLD_WINDOW_SIZE * idx], false, &detectionResult->featureVectors[detectorCascade->numTrees * idx]);
+    }
 
     for(int i = 0; i < numIterations; i++)
     {
