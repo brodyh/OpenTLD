@@ -65,6 +65,7 @@ endif(WIN32)
 
 if(APPLE)
 	add_definitions(-DHAVE_XLOCALE_H)
+	set(CMAKE_MACOSX_RPATH 1)
 endif(APPLE)
 
 if(NOT MSVC)
@@ -74,6 +75,7 @@ endif(NOT MSVC)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+set(CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE ON)
 
 #-------------------------------------------------------------------------------
 #add subdirectories
@@ -85,5 +87,6 @@ endif(NOT USE_SYSTEM_LIBS)
 
 add_subdirectory(src/libopentld)
 add_subdirectory(src/opentld)
+add_subdirectory(src/python)
 
 configure_file("${PROJECT_SOURCE_DIR}/OpenTLDConfig.cmake.in" "${PROJECT_BINARY_DIR}/OpenTLDConfig.cmake" @ONLY)
