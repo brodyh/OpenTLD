@@ -30,6 +30,7 @@
 #include "TLD.h"
 
 #include <iostream>
+#include <ctime>
 
 #include "NNClassifier.h"
 #include "TLDUtil.h"
@@ -135,6 +136,12 @@ void TLD::selectObject(const Mat &img, Rect *bb)
     //Init detector cascade
     detectorCascade->init();
 
+    // std::cout << "BB " << bb->width
+    // 	      << "x" << bb->height
+    // 	      << " img size " << detectorCascade->imgWidth
+    // 	      << "x" << detectorCascade->imgHeight
+    // 	      << "x" << detectorCascade->imgWidthStep << std::endl;
+
     currImg = img;
     if(currBB)
     {
@@ -149,27 +156,40 @@ void TLD::selectObject(const Mat &img, Rect *bb)
 
 }
 
+#define timeit(func, str) func;
+
+// static clock_t tic, toc;
+
+// #define timeit(func, str)				\
+//   tic = clock();					\
+//   func;							\
+//   toc = clock();					\
+//   std::cout << str << " "<< std::fixed			\
+//   << std::setprecision(2)				\
+//   << 1000.0 * (toc - tic)/CLOCKS_PER_SEC << " ms\n";	\
+
 void TLD::processImage(const Mat &img)
 {
-    storeCurrentData();
+
+    timeit(storeCurrentData(), "storeCurrentData");
+
     Mat grey_frame;
-    cvtColor(img, grey_frame, CV_RGB2GRAY);
+    cvtColor(img, grey_frame, CV_BGR2GRAY);
     currImg = grey_frame; // Store new image , right after storeCurrentData();
 
     if(trackerEnabled)
     {
-        medianFlowTracker->track(prevImg, currImg, prevBB);
+      timeit(medianFlowTracker->track(prevImg, currImg, prevBB), "medianFlowTracker");
     }
 
     if(detectorEnabled && (!alternating || medianFlowTracker->trackerBB == NULL))
     {
-        detectorCascade->detect(grey_frame);
+      timeit(detectorCascade->detect(grey_frame), "detectorCascade")
     }
 
-    fuseHypotheses();
+    timeit(fuseHypotheses(), "fuseHypotheses");
 
-    learn();
-
+    timeit(learn(), "learn");
 }
 
 void TLD::fuseHypotheses()
@@ -449,7 +469,7 @@ void TLD::writeToFile(const char *path)
     fprintf(file, "%d #width\n", detectorCascade->objWidth);
     fprintf(file, "%d #height\n", detectorCascade->objHeight);
     fprintf(file, "%f #min_var\n", detectorCascade->varianceFilter->minVar);
-    fprintf(file, "%d #Positive Sample Size\n", nn->truePositives->size());
+    fprintf(file, "%zu #Positive Sample Size\n", nn->truePositives->size());
 
 
 
@@ -468,7 +488,7 @@ void TLD::writeToFile(const char *path)
         }
     }
 
-    fprintf(file, "%d #Negative Sample Size\n", nn->falsePositives->size());
+    fprintf(file, "%zu #Negative Sample Size\n", nn->falsePositives->size());
 
     for(size_t s = 0; s < nn->falsePositives->size(); s++)
     {
@@ -517,7 +537,7 @@ void TLD::writeToFile(const char *path)
             }
         }
 
-        fprintf(file, "%d #numLeaves\n", list.size());
+        fprintf(file, "%zu #numLeaves\n", list.size());
 
         for(size_t j = 0; j < list.size(); j++)
         {

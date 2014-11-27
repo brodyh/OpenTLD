@@ -1,10 +1,10 @@
+#include <iostream>
 #include <boost/python.hpp>
+
 #include "TLD.h"
 #include "np_opencv_converter.hpp"
 
-#include <iostream>
 
-using tld::TLD;
 namespace py = boost::python;
 
 static py::object rect2py(const cv::Rect *rect) {
@@ -17,7 +17,7 @@ static py::object rect2py(const cv::Rect *rect) {
 
 namespace tld {
 
-  class PyTLD: public TLD {
+  class PyTLD: public tld::TLD {
   public:
     void pySelectObject(const cv::Mat &img, py::numeric::array pybb)
     {
@@ -31,6 +31,30 @@ namespace tld {
 
     py::object getCurrBB() { return rect2py(currBB); }
     py::object getPrevBB() { return rect2py(prevBB); }
+
+    void setImgSize(py::object imgSize) {
+      detectorCascade->imgWidth = py::extract<int>(imgSize[0]);
+      // this is the number of bytes in a row for grey scale
+      detectorCascade->imgWidthStep = py::extract<int>(imgSize[0]);
+      detectorCascade->imgHeight = py::extract<int>(imgSize[1]);
+    }
+
+    bool getUseShift() { return detectorCascade->useShift; }
+    void setUseShift(bool useShift) { detectorCascade->useShift = useShift; }
+    float getShift() { return detectorCascade->shift; }
+    void setShift(float shift) { detectorCascade->shift = shift; }
+    int getMinScale() { return detectorCascade->minScale; }
+    void setMinScale(int minScale) { detectorCascade->minScale = minScale; }
+    int getMaxScale() { return detectorCascade->maxScale; }
+    void setMaxScale(int maxScale) { detectorCascade->maxScale = maxScale; }
+    int getNumTrees() {return detectorCascade->numTrees; }
+    void setNumTrees(int numTrees) { detectorCascade->numTrees = numTrees; }
+    int getMinSize() { return detectorCascade->minSize; }
+    void setMinSize(int minSize) { detectorCascade->minSize = minSize; }
+    float getThetaTP() { return detectorCascade->nnClassifier->thetaTP; }
+    void setThetaTP(float thetaTP) { detectorCascade->nnClassifier->thetaTP = thetaTP; }
+    float getThetaFP() { return detectorCascade->nnClassifier->thetaFP; }
+    void setThetaFP(float thetaFP) { detectorCascade->nnClassifier->thetaFP = thetaFP; }
   };
 
 }
@@ -54,7 +78,16 @@ BOOST_PYTHON_MODULE(pytld)
     .def("processImage", &PyTLD::processImage)
     .def("writeToFile", &PyTLD::writeToFile)
     .def("readFromFile", &PyTLD::readFromFile)
+    .def("setImgSize", &PyTLD::setImgSize)
     .add_property("currBB", &PyTLD::getCurrBB)
     .add_property("prevBB", &PyTLD::getPrevBB)
+    .add_property("useShift", &PyTLD::getUseShift, &PyTLD::setUseShift)
+    .add_property("shift", &PyTLD::getShift, &PyTLD::setShift)
+    .add_property("minScale", &PyTLD::getMinScale, &PyTLD::setMinScale)
+    .add_property("maxScale", &PyTLD::getMaxScale, &PyTLD::setMaxScale)
+    .add_property("numTrees", &PyTLD::getNumTrees, &PyTLD::setNumTrees)
+    .add_property("minSize", &PyTLD::getMinSize, &PyTLD::setMinSize)
+    .add_property("thetaTP", &PyTLD::getThetaTP, &PyTLD::setThetaTP)
+    .add_property("thetaFP", &PyTLD::getThetaFP, &PyTLD::setThetaFP)
     ;
 }

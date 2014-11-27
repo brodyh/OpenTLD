@@ -128,7 +128,7 @@ public:
             delete u;
         }
     }
- 
+
     const MatAllocator* stdAllocator;
 };
 #else
@@ -182,9 +182,9 @@ public:
     }
 };
 #endif
-  
 
-  
+
+
 NumpyAllocator g_numpyAllocator;
 
 NDArrayConverter::NDArrayConverter() { init(); }
@@ -233,7 +233,7 @@ cv::Mat NDArrayConverter::toMat(const PyObject *o)
     const npy_intp* _sizes = PyArray_DIMS(o);
     const npy_intp* _strides = PyArray_STRIDES(o);
     bool transposed = false;
-    
+
     for(int i = 0; i < ndims; i++)
     {
         size[i] = (int)_sizes[i];
@@ -256,26 +256,26 @@ cv::Mat NDArrayConverter::toMat(const PyObject *o)
     // std::cerr << " ndims: " << ndims
     //           << " size: " << size
     //           << " type: " << type
-    //           << " step: " << step 
+    //           << " step: " << step
     //           << " size: " << size[2] << std::endl;
 
     // TODO: Possible bug in multi-dimensional matrices
-#if 0
+    // #if 0
     if( ndims == 3 && size[2] <= CV_CN_MAX && step[1] == elemsize*size[2] )
     {
         ndims--;
         type |= CV_MAKETYPE(0, size[2]);
     }
-#endif
-    
+    // #endif
+
     if( ndims > 2)
     {
         failmsg("toMat: Object has more than 2 dimensions");
     }
-    
+
     m = Mat(ndims, size, type, PyArray_DATA(o), step);
     // m.u = g_numpyAllocator.allocate(o, ndims, size, type, step);
-    
+
     if( m.data )
     {
 #if OPENCV_3
@@ -315,7 +315,7 @@ PyObject* NDArrayConverter::toNDArray(const cv::Mat& m)
     Py_INCREF(o);
     // p->addref();
     // pyObjectFromRefcount(p->refcount);
-    return o; 
+    return o;
 #else
     if( !m.data )
       Py_RETURN_NONE;
