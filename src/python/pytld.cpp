@@ -1,9 +1,9 @@
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <iostream>
 #include <boost/python.hpp>
 
 #include "TLD.h"
 #include "np_opencv_converter.hpp"
-
 
 namespace py = boost::python;
 
@@ -26,12 +26,19 @@ namespace tld {
       int width = py::extract<int>(pybb[2]);
       int height = py::extract<int>(pybb[3]);
       cv::Rect bb = cv::Rect(x, y, width, height);
-      selectObject(img, &bb);
+      cv::Mat grey;
+      if (img.channels() == 3)
+	cvtColor(img, grey, CV_BGR2GRAY);
+      else
+	grey = img;
+      selectObject(grey, &bb);
     }
 
     py::object getCurrBB() { return rect2py(currBB); }
     py::object getPrevBB() { return rect2py(prevBB); }
 
+    // Should be called before select object
+    // imgSize = [width, height]
     void setImgSize(py::object imgSize) {
       detectorCascade->imgWidth = py::extract<int>(imgSize[0]);
       // this is the number of bytes in a row for grey scale
