@@ -15,17 +15,21 @@ static py::object rect2py(const cv::Rect *rect) {
   return py::numeric::array(arr);
 }
 
+static cv::Rect py2rect(py::numeric::array pyrect) {
+  int x = py::extract<int>(pyrect[0]);
+  int y = py::extract<int>(pyrect[1]);
+  int width = py::extract<int>(pyrect[2]);
+  int height = py::extract<int>(pyrect[3]);
+  return cv::Rect(x, y, width, height);
+}
+
 namespace tld {
 
   class PyTLD: public tld::TLD {
   public:
     void pySelectObject(const cv::Mat &img, py::numeric::array pybb)
     {
-      int x = py::extract<int>(pybb[0]);
-      int y = py::extract<int>(pybb[1]);
-      int width = py::extract<int>(pybb[2]);
-      int height = py::extract<int>(pybb[3]);
-      cv::Rect bb = cv::Rect(x, y, width, height);
+      cv::Rect bb = py2rect(pybb);
       cv::Mat grey;
       if (img.channels() == 3)
 	cvtColor(img, grey, CV_BGR2GRAY);
@@ -63,7 +67,6 @@ namespace tld {
     float getThetaFP() { return detectorCascade->nnClassifier->thetaFP; }
     void setThetaFP(float thetaFP) { detectorCascade->nnClassifier->thetaFP = thetaFP; }
   };
-
 }
 
 BOOST_PYTHON_MODULE(pytld)
