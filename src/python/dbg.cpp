@@ -1,36 +1,39 @@
 #include <iostream>
 #include <vector>
-#include <boost/thread/thread.hpp>
+#include <string>
+#include <opencv/cv.h>
 
+std::string type2str(int type) {
+  std::string r;
 
-class Foo {
-public:
+  uchar depth = type & CV_MAT_DEPTH_MASK;
+  uchar chans = 1 + (type >> CV_CN_SHIFT);
 
-  Foo(int size) : results(size, 0.0f), data(size, 1.0f) {}
-
-  void parfor() {
-    std::vector<boost::thread> grp;
-    for (int i = 0; i < data.size(); i++)
-      grp.push_back(boost::thread(&Foo::work, this, i));
-    // work(i);
-
-    for (int i = 0; i < grp.size(); i++)
-      grp[i].join();
-
-    for (int i = 0; i < results.size(); i++)
-      std::cout << "i=" << i << " result=" << results[i] << std::endl;
+  switch ( depth ) {
+  case CV_8U:  r = "8U"; break;
+  case CV_8S:  r = "8S"; break;
+  case CV_16U: r = "16U"; break;
+  case CV_16S: r = "16S"; break;
+  case CV_32S: r = "32S"; break;
+  case CV_32F: r = "32F"; break;
+  case CV_64F: r = "64F"; break;
+  default:     r = "User"; break;
   }
 
-  void work(int i) {
-    for (int j = 0; j < i; j++)
-      results[i] += data[j];
-  }
+  r += "C";
+  r += (chans+'0');
 
-  std::vector<float> results;
-  std::vector<float> data;
-};
+  return r;
+}
+
 
 int main(int argc, char **argv) {
-  Foo f(10);
-  f.parfor();
+  cv::Mat img(100, 100, CV_8UC1, cv::Scalar(1));
+  cv::Mat out, outSquared;
+  cv::integral(img, out, outSquared);
+  out = out(cv::Rect(1, 1, img.cols, img.rows));
+  std::cout << "out Size " << out.size()
+	    << " Type " << type2str(out.type()) << std::endl;
+  std::cout << "outSquared Size " << outSquared.size()
+	    << " Type " << type2str(outSquared.type()) << std::endl;
 }
