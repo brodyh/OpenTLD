@@ -30,6 +30,23 @@
 #include <utility>
 
 #include <opencv/cv.h>
+#include <boost/timer/timer.hpp>
+
+// #define timeit(func, str) func;
+
+#define timeit(func, str)                                        \
+  {								 \
+    boost::timer::cpu_timer t;					 \
+    func;							 \
+    t.stop();							 \
+    boost::timer::cpu_times elapsed(t.elapsed());		 \
+    std::cout << std::fixed					 \
+	      << std::setprecision(2)				 \
+	      << 1e-6 * elapsed.wall << " ms wall "		 \
+	      << 1e-6 * elapsed.user << " ms user "		 \
+	      << str << std::endl;				 \
+  }								 \
+
 
 namespace tld
 {

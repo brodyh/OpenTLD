@@ -28,7 +28,6 @@
 #define TLD_H_
 
 #include <opencv/cv.h>
-#include <boost/timer/timer.hpp>
 
 #include "MedianFlowTracker.h"
 #include "DetectorCascade.h"

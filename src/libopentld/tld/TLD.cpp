@@ -157,27 +157,10 @@ void TLD::selectObject(const Mat &img, Rect *bb)
 }
 
 
-
-#define timeit(func, str) func;
-
-// #define timeit(func, str)                                        \
-//   {								 \
-//     boost::timer::cpu_timer t;					 \
-//     func;							 \
-//     t.stop();							 \
-//     boost::timer::cpu_times elapsed(t.elapsed());		 \
-//     std::cout << std::fixed					 \
-// 	      << std::setprecision(2)				 \
-// 	      << 1e-6 * elapsed.wall << " ms wall "		 \
-// 	      << std::setprecision(2)				 \
-// 	      << 1e-6 * elapsed.user << " ms user "		 \
-// 	      << str << std::endl;				 \
-//   }								 \
-
 void TLD::processImage(const Mat &img)
 {
 
-    timeit(storeCurrentData(), "storeCurrentData");
+    storeCurrentData();
 
     Mat grey_frame;
     cvtColor(img, grey_frame, CV_BGR2GRAY);
@@ -193,9 +176,9 @@ void TLD::processImage(const Mat &img)
       timeit(detectorCascade->detect(grey_frame), "detectorCascade")
     }
 
-    timeit(fuseHypotheses(), "fuseHypotheses");
+    fuseHypotheses();
 
-    timeit(learn(), "learn");
+    learn();
 }
 
 void TLD::fuseHypotheses()

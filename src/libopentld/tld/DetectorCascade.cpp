@@ -296,7 +296,7 @@ void DetectorCascade::detect(const Mat &img)
 
     //Prepare components
     foregroundDetector->nextIteration(img); //Calculates foreground
-    varianceFilter->nextIteration(img); //Calculates integral images
+    timeit(varianceFilter->nextIteration(img), "varianceFilter->nextIteration(img)"); //Calculates integral images
     ensembleClassifier->nextIteration(img);
 
     unsigned int nthreads = boost::thread::hardware_concurrency();
@@ -308,7 +308,7 @@ void DetectorCascade::detect(const Mat &img)
       detectWindowThread dwt(this, startIdx, endIdx, img);
       grp.create_thread(dwt);
     }
-    grp.join_all();
+    timeit(grp.join_all(), "grp.join_all()");
 
     //Cluster
     clustering->clusterConfidentIndices();
