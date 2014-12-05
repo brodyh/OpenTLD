@@ -25,8 +25,6 @@
  */
 
 #include "VarianceFilter.h"
-
-#include "IntegralImage.h"
 #include "DetectorCascade.h"
 
 using namespace cv;
@@ -38,8 +36,6 @@ VarianceFilter::VarianceFilter()
 {
     enabled = true;
     minVar = 0;
-    integralImg = NULL;
-    integralImg_squared = NULL;
 }
 
 VarianceFilter::~VarianceFilter()
@@ -49,20 +45,14 @@ VarianceFilter::~VarianceFilter()
 
 void VarianceFilter::release()
 {
-    if(integralImg != NULL) delete integralImg;
-
-    integralImg = NULL;
-
-    if(integralImg_squared != NULL) delete integralImg_squared;
-
-    integralImg_squared = NULL;
+  integralImg.release();
+  integralImg_squared.release();
 }
 
 float VarianceFilter::calcVariance(int *off)
 {
-
-    int *ii1 = integralImg->data;
-    long long *ii2 = integralImg_squared->data;
+    int *ii1 = (int*)integralImg.data;
+    double *ii2 = (double*)integralImg_squared.data;
 
     float mX  = (ii1[off[3]] - ii1[off[2]] - ii1[off[1]] + ii1[off[0]]) / (float) off[5]; //Sum of Area divided by area
     float mX2 = (ii2[off[3]] - ii2[off[2]] - ii2[off[1]] + ii2[off[0]]) / (float) off[5];
@@ -75,11 +65,11 @@ void VarianceFilter::nextIteration(const Mat &img)
 
     release();
 
-    integralImg = new IntegralImage<int>(img.size());
-    integralImg->calcIntImg(img);
-
-    integralImg_squared = new IntegralImage<long long>(img.size());
-    integralImg_squared->calcIntImg(img, true);
+    cv::integral(img, integralImg, integralImg_squared);
+    integralImg = integralImg(cv::Rect(1, 1, img.cols, img.rows));
+    integralImg_squared = integralImg_squared(cv::Rect(1, 1, img.cols, img.rows));
+    assert(integralImg.type() == CV_32SC1);
+    assert(integralImgSquared.type() == CV_64FC1);
 }
 
 bool VarianceFilter::filter(int i)

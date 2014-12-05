@@ -28,7 +28,6 @@
 
 #include <opencv/cv.h>
 
-#include "IntegralImage.h"
 #include "DetectionResult.h"
 
 namespace tld
@@ -36,24 +35,24 @@ namespace tld
 
 class VarianceFilter
 {
-    IntegralImage<int>* integralImg;
-    IntegralImage<long long>* integralImg_squared;
+  cv::Mat integralImg;
+  cv::Mat integralImg_squared;
 
 public:
-    bool enabled;
-    int *windowOffsets;
+  bool enabled;
+  int *windowOffsets;
 
-    DetectionResult *detectionResult;
+  DetectionResult *detectionResult;
 
-    float minVar;
+  float minVar;
 
-    VarianceFilter();
-    virtual ~VarianceFilter();
+  VarianceFilter();
+  virtual ~VarianceFilter();
 
-    void release();
-    void nextIteration(const cv::Mat &img);
-    bool filter(int idx);
-    float calcVariance(int *off);
+  void release();
+  void nextIteration(const cv::Mat &img);
+  bool filter(int idx);
+  float calcVariance(int *off);
 };
 
 } /* namespace tld */
