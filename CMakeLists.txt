@@ -27,6 +27,7 @@ project(OpenTLD)
 cmake_minimum_required(VERSION 2.6)
 
 find_package(OpenCV REQUIRED)
+find_package(Boost COMPONENTS python thread system timer REQUIRED)
 
 if(BUILD_QOPENTLD)
     find_package(Qt4 REQUIRED)

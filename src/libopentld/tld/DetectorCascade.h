@@ -26,6 +26,8 @@
 #ifndef DETECTORCASCADE_H_
 #define DETECTORCASCADE_H_
 
+#include <boost/thread/thread.hpp>
+
 #include "DetectionResult.h"
 #include "ForegroundDetector.h"
 #include "VarianceFilter.h"
@@ -46,6 +48,7 @@ class DetectorCascade
     //Working data
     int numScales;
     cv::Size *scales;
+    boost::mutex mtx;
 public:
     //Configurable members
     int minScale;
@@ -92,6 +95,7 @@ public:
     void release();
     void cleanPreviousData();
     void detect(const cv::Mat &img);
+    void detectWindow(int i, const cv::Mat &img);
 };
 
 } /* namespace tld */

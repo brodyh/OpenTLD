@@ -156,17 +156,23 @@ void TLD::selectObject(const Mat &img, Rect *bb)
 
 }
 
+
+
 #define timeit(func, str) func;
 
-// static clock_t tic, toc;
-
-// #define timeit(func, str)				\
-//   tic = clock();					\
-//   func;							\
-//   toc = clock();					\
-//   std::cout << str << " "<< std::fixed			\
-//   << std::setprecision(2)				\
-//   << 1000.0 * (toc - tic)/CLOCKS_PER_SEC << " ms\n";	\
+// #define timeit(func, str)                                        \
+//   {								 \
+//     boost::timer::cpu_timer t;					 \
+//     func;							 \
+//     t.stop();							 \
+//     boost::timer::cpu_times elapsed(t.elapsed());		 \
+//     std::cout << std::fixed					 \
+// 	      << std::setprecision(2)				 \
+// 	      << 1e-6 * elapsed.wall << " ms wall "		 \
+// 	      << std::setprecision(2)				 \
+// 	      << 1e-6 * elapsed.user << " ms user "		 \
+// 	      << str << std::endl;				 \
+//   }								 \
 
 void TLD::processImage(const Mat &img)
 {

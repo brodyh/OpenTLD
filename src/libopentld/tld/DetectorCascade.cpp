@@ -38,6 +38,21 @@ namespace tld
 //TODO: Convert this to a function
 #define sub2idx(x,y,imgWidthStep) ((int) (floor((x)+0.5) + floor((y)+0.5)*(imgWidthStep)))
 
+struct detectWindowThread {
+
+  detectWindowThread(DetectorCascade *_dc, int _start_idx, int _end_idx, const Mat &_img) :
+    dc(_dc), start_idx(_start_idx), end_idx(_end_idx), img(_img) {}
+
+  void operator()(){
+    for (int i = start_idx; i < end_idx; i++)
+      dc->detectWindow(i, img);
+  }
+
+  DetectorCascade *dc;
+  const Mat &img;
+  int start_idx, end_idx;
+};
+
 DetectorCascade::DetectorCascade()
 {
     objWidth = -1; //MUST be set before calling init
@@ -284,61 +299,71 @@ void DetectorCascade::detect(const Mat &img)
     varianceFilter->nextIteration(img); //Calculates integral images
     ensembleClassifier->nextIteration(img);
 
-    #pragma omp parallel for
+    unsigned int nthreads = boost::thread::hardware_concurrency();
+    boost::thread_group grp;
+    for(int thread = 0; thread < nthreads; thread++) {
+      int startIdx = thread * (numWindows/nthreads);
+      int endIdx = (thread == nthreads-1) ? numWindows : (thread+1) * (numWindows/nthreads);
 
-    for(int i = 0; i < numWindows; i++)
-    {
-
-        int *window = &windows[TLD_WINDOW_SIZE * i];
-
-        if(foregroundDetector->isActive())
-        {
-            bool isInside = false;
-
-            for(size_t j = 0; j < detectionResult->fgList->size(); j++)
-            {
-
-                int bgBox[4];
-                tldRectToArray(detectionResult->fgList->at(j), bgBox);
-
-                if(tldIsInside(window, bgBox))  //TODO: This is inefficient and should be replaced by a quadtree
-                {
-                    isInside = true;
-                }
-            }
-
-            if(!isInside)
-            {
-                detectionResult->posteriors[i] = 0;
-                continue;
-            }
-        }
-
-        if(!varianceFilter->filter(i))
-        {
-            detectionResult->posteriors[i] = 0;
-            continue;
-        }
-
-        if(!ensembleClassifier->filter(i))
-        {
-            continue;
-        }
-
-        if(!nnClassifier->filter(img, i))
-        {
-            continue;
-        }
-
-        detectionResult->confidentIndices->push_back(i);
-
-
+      detectWindowThread dwt(this, startIdx, endIdx, img);
+      grp.create_thread(dwt);
     }
+    grp.join_all();
 
     //Cluster
     clustering->clusterConfidentIndices();
 
     detectionResult->containsValidData = true;
+}
+
+void DetectorCascade::detectWindow(int i, const Mat &img)
+{
+
+  int *window = &windows[TLD_WINDOW_SIZE * i];
+
+  if(foregroundDetector->isActive())
+    {
+      bool isInside = false;
+
+      for(size_t j = 0; j < detectionResult->fgList->size(); j++)
+	{
+
+	  int bgBox[4];
+	  tldRectToArray(detectionResult->fgList->at(j), bgBox);
+
+	  if(tldIsInside(window, bgBox))  //TODO: This is inefficient and should be replaced by a quadtree
+	    {
+	      isInside = true;
+	    }
+	}
+
+      if(!isInside)
+	{
+	  detectionResult->posteriors[i] = 0;
+	  return;
+	}
+    }
+
+  if(!varianceFilter->filter(i))
+    {
+      detectionResult->posteriors[i] = 0;
+      return;
+    }
+
+  if(!ensembleClassifier->filter(i))
+    {
+      return;
+    }
+
+  if(!nnClassifier->filter(img, i))
+    {
+      return;
+    }
+
+  mtx.lock();
+  detectionResult->confidentIndices->push_back(i);
+  mtx.unlock();
+
 }
 
 } /* namespace tld */

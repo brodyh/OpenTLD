@@ -3,6 +3,7 @@
 #include <boost/python.hpp>
 
 #include "TLD.h"
+#include "TLDUtil.h"
 #include "np_opencv_converter.hpp"
 
 namespace py = boost::python;
@@ -25,48 +26,61 @@ static cv::Rect py2rect(py::numeric::array pyrect) {
 
 namespace tld {
 
-  class PyTLD: public tld::TLD {
-  public:
-    void pySelectObject(const cv::Mat &img, py::numeric::array pybb)
-    {
-      cv::Rect bb = py2rect(pybb);
-      cv::Mat grey;
-      if (img.channels() == 3)
-	cvtColor(img, grey, CV_BGR2GRAY);
-      else
-	grey = img;
-      selectObject(grey, &bb);
-    }
+class PyTLD: public tld::TLD {
+public:
 
-    py::object getCurrBB() { return rect2py(currBB); }
-    py::object getPrevBB() { return rect2py(prevBB); }
+  void selectObject(const cv::Mat &img, py::numeric::array pybb)
+  {
+    cv::Rect bb = py2rect(pybb);
+    cv::Mat grey;
+    if (img.channels() == 3)
+      cvtColor(img, grey, CV_BGR2GRAY);
+    else
+      grey = img;
+    tld::TLD::selectObject(grey, &bb);
+  }
 
-    // Should be called before select object
-    // imgSize = [width, height]
-    void setImgSize(py::object imgSize) {
-      detectorCascade->imgWidth = py::extract<int>(imgSize[0]);
-      // this is the number of bytes in a row for grey scale
-      detectorCascade->imgWidthStep = py::extract<int>(imgSize[0]);
-      detectorCascade->imgHeight = py::extract<int>(imgSize[1]);
-    }
+  py::object getCurrBB() { return rect2py(currBB); }
 
-    bool getUseShift() { return detectorCascade->useShift; }
-    void setUseShift(bool useShift) { detectorCascade->useShift = useShift; }
-    float getShift() { return detectorCascade->shift; }
-    void setShift(float shift) { detectorCascade->shift = shift; }
-    int getMinScale() { return detectorCascade->minScale; }
-    void setMinScale(int minScale) { detectorCascade->minScale = minScale; }
-    int getMaxScale() { return detectorCascade->maxScale; }
-    void setMaxScale(int maxScale) { detectorCascade->maxScale = maxScale; }
-    int getNumTrees() {return detectorCascade->numTrees; }
-    void setNumTrees(int numTrees) { detectorCascade->numTrees = numTrees; }
-    int getMinSize() { return detectorCascade->minSize; }
-    void setMinSize(int minSize) { detectorCascade->minSize = minSize; }
-    float getThetaTP() { return detectorCascade->nnClassifier->thetaTP; }
-    void setThetaTP(float thetaTP) { detectorCascade->nnClassifier->thetaTP = thetaTP; }
-    float getThetaFP() { return detectorCascade->nnClassifier->thetaFP; }
-    void setThetaFP(float thetaFP) { detectorCascade->nnClassifier->thetaFP = thetaFP; }
-  };
+  void setCurrBB(py::numeric::array pyrect)
+  {
+    cv::Rect bb = py2rect(pyrect);
+    delete currBB;
+    currBB = tldCopyRect(&bb);
+    currConf = 1;
+    valid = true;
+  }
+
+  py::object getPrevBB() { return rect2py(prevBB); }
+
+  // Should be called before select object
+  // imgSize = [width, height]
+  void setImgSize(py::object imgSize) {
+    detectorCascade->imgWidth = py::extract<int>(imgSize[0]);
+    // this is the number of bytes in a row for grey scale
+    detectorCascade->imgWidthStep = py::extract<int>(imgSize[0]);
+    detectorCascade->imgHeight = py::extract<int>(imgSize[1]);
+  }
+
+
+  // accessor functions
+  bool getUseShift() { return detectorCascade->useShift; }
+  void setUseShift(bool useShift) { detectorCascade->useShift = useShift; }
+  float getShift() { return detectorCascade->shift; }
+  void setShift(float shift) { detectorCascade->shift = shift; }
+  int getMinScale() { return detectorCascade->minScale; }
+  void setMinScale(int minScale) { detectorCascade->minScale = minScale; }
+  int getMaxScale() { return detectorCascade->maxScale; }
+  void setMaxScale(int maxScale) { detectorCascade->maxScale = maxScale; }
+  int getNumTrees() {return detectorCascade->numTrees; }
+  void setNumTrees(int numTrees) { detectorCascade->numTrees = numTrees; }
+  int getMinSize() { return detectorCascade->minSize; }
+  void setMinSize(int minSize) { detectorCascade->minSize = minSize; }
+  float getThetaTP() { return detectorCascade->nnClassifier->thetaTP; }
+  void setThetaTP(float thetaTP) { detectorCascade->nnClassifier->thetaTP = thetaTP; }
+  float getThetaFP() { return detectorCascade->nnClassifier->thetaFP; }
+  void setThetaFP(float thetaFP) { detectorCascade->nnClassifier->thetaFP = thetaFP; }
+};
 }
 
 BOOST_PYTHON_MODULE(pytld)
@@ -84,12 +98,14 @@ BOOST_PYTHON_MODULE(pytld)
     .def_readwrite("currConf", &PyTLD::currConf)
     .def_readwrite("learning", &PyTLD::learning)
     .def("release", &PyTLD::release)
-    .def("selectObject", &PyTLD::pySelectObject)
+    .def("selectObject", &PyTLD::selectObject)
     .def("processImage", &PyTLD::processImage)
+    .def("learn", &PyTLD::learn)
     .def("writeToFile", &PyTLD::writeToFile)
     .def("readFromFile", &PyTLD::readFromFile)
+    // .def("setImg", &PyTLD::setImg)
     .def("setImgSize", &PyTLD::setImgSize)
-    .add_property("currBB", &PyTLD::getCurrBB)
+    .add_property("currBB", &PyTLD::getCurrBB, &PyTLD::setCurrBB)
     .add_property("prevBB", &PyTLD::getPrevBB)
     .add_property("useShift", &PyTLD::getUseShift, &PyTLD::setUseShift)
     .add_property("shift", &PyTLD::getShift, &PyTLD::setShift)

@@ -1,43 +1,36 @@
 #include <iostream>
-#include <string>
-
-/*
-std::string type2str(int type) {
-  std::string r;
-
-  uchar depth = type & CV_MAT_DEPTH_MASK;
-  uchar chans = 1 + (type >> CV_CN_SHIFT);
-
-  switch ( depth ) {
-  case CV_8U:  r = "8U"; break;
-  case CV_8S:  r = "8S"; break;
-  case CV_16U: r = "16U"; break;
-  case CV_16S: r = "16S"; break;
-  case CV_32S: r = "32S"; break;
-  case CV_32F: r = "32F"; break;
-  case CV_64F: r = "64F"; break;
-  default:     r = "User"; break;
-  }
-
-  r += "C";
-  r += (chans+'0');
-
-  return r;
-}
-*/
+#include <vector>
+#include <boost/thread/thread.hpp>
 
 
-
-template <class T1>
 class Foo {
+public:
 
-  template <class T2>
-  Foo(T1 x, T2 y) {
-    std::cout << x << " " << y << std::endl;
+  Foo(int size) : results(size, 0.0f), data(size, 1.0f) {}
+
+  void parfor() {
+    std::vector<boost::thread> grp;
+    for (int i = 0; i < data.size(); i++)
+      grp.push_back(boost::thread(&Foo::work, this, i));
+    // work(i);
+
+    for (int i = 0; i < grp.size(); i++)
+      grp[i].join();
+
+    for (int i = 0; i < results.size(); i++)
+      std::cout << "i=" << i << " result=" << results[i] << std::endl;
   }
 
+  void work(int i) {
+    for (int j = 0; j < i; j++)
+      results[i] += data[j];
+  }
+
+  std::vector<float> results;
+  std::vector<float> data;
 };
 
 int main(int argc, char **argv) {
-  //Foo<int> foo = Foo<int>(1, 2);
+  Foo f(10);
+  f.parfor();
 }

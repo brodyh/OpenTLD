@@ -61,4 +61,3 @@ if(BUILD_QOPENTLD)
 
     install(TARGETS qopentld DESTINATION bin)
 endif(BUILD_QOPENTLD)
-

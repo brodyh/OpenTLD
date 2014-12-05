@@ -28,6 +28,7 @@
 #define TLD_H_
 
 #include <opencv/cv.h>
+#include <boost/timer/timer.hpp>
 
 #include "MedianFlowTracker.h"
 #include "DetectorCascade.h"
@@ -39,7 +40,6 @@ class TLD
 {
     void storeCurrentData();
     void fuseHypotheses();
-    void learn();
     void initialLearning();
 public:
     bool trackerEnabled;
@@ -64,6 +64,7 @@ public:
     void release();
     void selectObject(const cv::Mat &img, cv::Rect *bb);
     void processImage(const cv::Mat &img);
+    void learn();
     void writeToFile(const char *path);
     void readFromFile(const char *path);
 };
