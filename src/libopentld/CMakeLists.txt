@@ -1,3 +1,4 @@
+find_package(Boost COMPONENTS thread system timer REQUIRED)
 
 include_directories(imacq
     mftracker
@@ -35,7 +36,6 @@ add_library(libopentld
     tld/DetectorCascade.h
     tld/EnsembleClassifier.h
     tld/ForegroundDetector.h
-    tld/IntegralImage.h
     tld/MedianFlowTracker.h
     tld/NNClassifier.h
     tld/NormalizedPatch.h

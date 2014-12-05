@@ -1,6 +1,6 @@
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/python/cmake-modules")
-
+find_package(Boost COMPONENTS python REQUIRED)
 find_package(PythonLibsNew REQUIRED)
 
 include_directories(
