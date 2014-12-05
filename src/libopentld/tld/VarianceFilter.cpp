@@ -51,12 +51,12 @@ void VarianceFilter::release()
 
 float VarianceFilter::calcVariance(int *off)
 {
-    int *ii1 = (int*)integralImg.data;
-    double *ii2 = (double*)integralImg_squared.data;
+  cv::Mat ii1 = integralImg;
+  cv::Mat ii2 = integralImg_squared;
 
-    float mX  = (ii1[off[3]] - ii1[off[2]] - ii1[off[1]] + ii1[off[0]]) / (float) off[5]; //Sum of Area divided by area
-    float mX2 = (ii2[off[3]] - ii2[off[2]] - ii2[off[1]] + ii2[off[0]]) / (float) off[5];
-    return mX2 - mX * mX;
+  float mX  = (ii1.at<int>(off[3]) - ii1.at<int>(off[2]) - ii1.at<int>(off[1]) + ii1.at<int>(off[0])) / (float) off[5]; //Sum of Area divided by area
+  float mX2 = (ii2.at<double>(off[3]) - ii2.at<double>(off[2]) - ii2.at<double>(off[1]) + ii2.at<double>(off[0])) / (float) off[5];
+  return mX2 - mX * mX;
 }
 
 void VarianceFilter::nextIteration(const Mat &img)
@@ -68,8 +68,6 @@ void VarianceFilter::nextIteration(const Mat &img)
     cv::integral(img, integralImg, integralImg_squared);
     integralImg = integralImg(cv::Rect(1, 1, img.cols, img.rows));
     integralImg_squared = integralImg_squared(cv::Rect(1, 1, img.cols, img.rows));
-    assert(integralImg.type() == CV_32SC1);
-    assert(integralImgSquared.type() == CV_64FC1);
 }
 
 bool VarianceFilter::filter(int i)

@@ -28,12 +28,23 @@ std::string type2str(int type) {
 
 
 int main(int argc, char **argv) {
-  cv::Mat img(100, 100, CV_8UC1, cv::Scalar(1));
+  cv::Mat img(10, 10, CV_8UC1, cv::Scalar(1));
   cv::Mat out, outSquared;
   cv::integral(img, out, outSquared);
   out = out(cv::Rect(1, 1, img.cols, img.rows));
   std::cout << "out Size " << out.size()
-	    << " Type " << type2str(out.type()) << std::endl;
+	    << " Type " << type2str(out.type())
+	    << " out(45) = " << out.at<int>(45)
+	    << " out(4, 5) = " << out.at<int>(4, 5)
+	    << " out.data[45] = " << ((int*)out.data)[45] << std::endl;
+
+  out = out.clone();
+  for (int r = 0; r < 10; r++) {
+    for (int c = 0; c < 10; c++ ) {
+      std::cout << ((int*)out.data)[r*10 + c] << " ";
+    }
+    std::cout << std::endl;
+  }
   std::cout << "outSquared Size " << outSquared.size()
 	    << " Type " << type2str(outSquared.type()) << std::endl;
 }
