@@ -32,8 +32,9 @@
 #include <opencv/cv.h>
 #include <boost/timer/timer.hpp>
 
-// #define timeit(func, str) func;
+#define timeit(func, str) func;
 
+/*
 #define timeit(func, str)                                        \
   {								 \
     boost::timer::cpu_timer t;					 \
@@ -46,7 +47,7 @@
 	      << 1e-6 * elapsed.user << " ms user "		 \
 	      << str << std::endl;				 \
   }								 \
-
+*/
 
 namespace tld
 {

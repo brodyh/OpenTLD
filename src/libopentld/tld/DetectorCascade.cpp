@@ -311,7 +311,7 @@ void DetectorCascade::detect(const Mat &img)
     timeit(grp.join_all(), "grp.join_all()");
 
     //Cluster
-    clustering->clusterConfidentIndices();
+    timeit(clustering->clusterConfidentIndices(), "clustering->clusterConfidentIndices()");
 
     detectionResult->containsValidData = true;
 }
@@ -363,7 +363,6 @@ void DetectorCascade::detectWindow(int i, const Mat &img)
   mtx.lock();
   detectionResult->confidentIndices->push_back(i);
   mtx.unlock();
-
 }
 
 } /* namespace tld */

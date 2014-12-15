@@ -53,6 +53,17 @@ public:
 
   py::object getPrevBB() { return rect2py(prevBB); }
 
+  void setCurrImg(const cv::Mat &img)
+  {
+    cv::Mat grey;
+    if (img.channels() == 3)
+      cvtColor(img, grey, CV_BGR2GRAY);
+    else
+      grey = img;
+
+    currImg = grey;
+  }
+
   // Should be called before select object
   // imgSize = [width, height]
   void setImgSize(py::object imgSize) {
@@ -105,6 +116,7 @@ BOOST_PYTHON_MODULE(pytld)
     .def("readFromFile", &PyTLD::readFromFile)
     // .def("setImg", &PyTLD::setImg)
     .def("setImgSize", &PyTLD::setImgSize)
+    .def("setCurrImg", &PyTLD::setCurrImg)
     .add_property("currBB", &PyTLD::getCurrBB, &PyTLD::setCurrBB)
     .add_property("prevBB", &PyTLD::getPrevBB)
     .add_property("useShift", &PyTLD::getUseShift, &PyTLD::setUseShift)
