@@ -64,6 +64,8 @@ public:
     currImg = grey;
   }
 
+  cv::Mat getCurrImg() { return currImg; }
+
   // Should be called before select object
   // imgSize = [width, height]
   void setImgSize(py::object imgSize) {
@@ -108,6 +110,7 @@ BOOST_PYTHON_MODULE(pytld)
     .def_readwrite("wasValid", &PyTLD::wasValid)
     .def_readwrite("currConf", &PyTLD::currConf)
     .def_readwrite("learning", &PyTLD::learning)
+    .def_readwrite("prevImg", &PyTLD::prevImg)
     .def("release", &PyTLD::release)
     .def("selectObject", &PyTLD::selectObject)
     .def("processImage", &PyTLD::processImage)
@@ -127,5 +130,6 @@ BOOST_PYTHON_MODULE(pytld)
     .add_property("minSize", &PyTLD::getMinSize, &PyTLD::setMinSize)
     .add_property("thetaTP", &PyTLD::getThetaTP, &PyTLD::setThetaTP)
     .add_property("thetaFP", &PyTLD::getThetaFP, &PyTLD::setThetaFP)
+    .add_property("currImg", &PyTLD::getCurrImg, &PyTLD::setCurrImg)
     ;
 }

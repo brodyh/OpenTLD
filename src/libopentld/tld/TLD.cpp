@@ -187,6 +187,22 @@ void TLD::fuseHypotheses()
     int numClusters = detectorCascade->detectionResult->numClusters;
     Rect *detectorBB = detectorCascade->detectionResult->detectorBB;
 
+    if (trackerBB)
+      {
+	trackerBB->x = std::max(trackerBB->x, 0);
+	trackerBB->width = std::min(detectorCascade->imgWidth - trackerBB->x, trackerBB->width);
+	trackerBB->y = std::max(trackerBB->y, 0);
+	trackerBB->height = std::min(detectorCascade->imgHeight - trackerBB->y, trackerBB->height);
+      }
+
+    if (detectorBB)
+      {
+	detectorBB->x = std::max(detectorBB->x, 0);
+	detectorBB->width = std::min(detectorCascade->imgWidth - detectorBB->x, detectorBB->width);
+	detectorBB->y = std::max(detectorBB->y, 0);
+	detectorBB->height = std::min(detectorCascade->imgHeight - detectorBB->y, detectorBB->height);
+      }
+
     if(currBB)
     {
         delete currBB;
